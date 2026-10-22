@@ -1,0 +1,39 @@
+# segredos e configuração local
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ambientes e caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+node_modules/
+.pytest_cache/
+
+# dados, bancos e backups
+dados/
+data/
+uploads/
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.bak
+*.bak-*
+*-bak-*
+server.bak-*/
+web.bak-*/
+logs/
+*.log
+
+# a imagem estática copia o HTML offline para cá na hora do build
+deploy/estatico/index.html
+
+# sistema
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

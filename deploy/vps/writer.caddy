@@ -1,0 +1,41 @@
+# GPlanSiS|Writer — writer.gplansis.com (bloco próprio; não toca nos outros sites).
+# Estáticos de /opt/writer/web; /api/* → uvicorn 127.0.0.1:8976.
+writer.gplansis.com {
+	import seguranca_hub
+	# o assistente responde em streaming (SSE): sem compressão, para o texto chegar na hora
+	@comprime not path /api/ia/texto /api/ia/editar
+	encode @comprime gzip zstd
+	request_body {
+		max_size 30MB
+	}
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		X-Frame-Options DENY
+		-Server
+	}
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8976 {
+			header_up X-Forwarded-Proto https
+			transport http {
+				response_header_timeout 300s
+			}
+		}
+	}
+	handle {
+		root * /opt/writer/web
+		# o Caddy não conhece a extensão .webmanifest: tipo explícito
+		@manifesto path /manifest.webmanifest
+		header @manifesto >Content-Type "application/manifest+json"
+		@naocache path / /index.html /sw.js /manifest.webmanifest
+		header @naocache Cache-Control "no-cache"
+		@versionado path /writer.js /writer.css /plataforma.js /plataforma.css /tema.js /pwa.js
+		header @versionado Cache-Control "public, max-age=31536000, immutable"
+		@longo path /vendor/* /icon.svg /icon-32.png /icon-192.png /icon-512.png /icon-maskable-512.png /apple-touch-icon.png
+		header @longo Cache-Control "public, max-age=604800"
+		try_files {path} /index.html
+		file_server
+	}
+	log {
+		output file /var/log/caddy/writer.log
+	}
+}

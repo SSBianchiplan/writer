@@ -1,0 +1,185 @@
+/* GPlanSiS|Writer — camada de plataforma (acesso, documentos no servidor, configurações).
+   Usa os tokens do editor (writer.css); nada aqui redefine cor fora deles. */
+
+/* ---------- portão de acesso ---------- */
+.pl-gate{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;
+  background:var(--bg);background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:22px 22px}
+.pl-gate[hidden]{display:none}
+.pl-gate-card{width:min(380px,100%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px 22px 18px;box-shadow:var(--shadow)}
+.pl-brand{display:flex;align-items:center;gap:10px;font-size:20px;letter-spacing:-.01em}
+.pl-brand svg{width:36px;height:36px;flex:none}
+.pl-brand b{font-weight:600}.pl-brand span{color:var(--accent);font-weight:500}
+.pl-gate-sub{margin:6px 0 16px;color:var(--muted);font-size:12.5px}
+.pl-gate-foot{text-align:center;max-width:380px}
+.pl-form{display:flex;flex-direction:column;gap:10px}
+.pl-form[hidden]{display:none}
+.pl-form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.pl-form input,.pl-in{padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);color:var(--text);font-size:14px;min-width:0}
+.pl-form input:focus,.pl-in:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.pl-wide{justify-content:center;min-height:38px;font-size:14px}
+.pl-err{color:var(--danger);font-size:12.5px;min-height:1em}
+.pl-err:empty{display:none}
+.pl-ok{color:var(--ok);font-size:12.5px}
+
+/* ---------- barra superior ---------- */
+.pl-userbtn{border:0;background:none;padding:0 0 0 2px;display:inline-flex;align-items:center;flex:none}
+.pl-av{--s:30px;width:var(--s);height:var(--s);border-radius:50%;flex:none;display:inline-grid;place-items:center;overflow:hidden;
+  background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:calc(var(--s)*.4);border:1px solid var(--line);user-select:none;line-height:1}
+.pl-av img{width:100%;height:100%;object-fit:cover;display:block}
+.pl-av.lg{--s:96px}.pl-av.md{--s:40px}.pl-av.sm{--s:20px}
+.pl-docchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:2px 10px 2px 4px;
+  font-size:12px;white-space:nowrap;max-width:34vw;overflow:hidden;flex:0 1 auto;min-width:0}
+.pl-docchip span{overflow:hidden;text-overflow:ellipsis}
+.pl-docchip:hover{border-color:var(--accent)}
+.pl-docchip.ro{border-color:var(--accent);background:var(--accent-soft)}
+@media (max-width:760px){.pl-docchip{max-width:28vw}.pl-docchip span{display:none}.pl-docchip{padding:2px}}
+
+/* somente leitura: some com o que grava */
+body.pl-ro #ribbon{display:none!important}
+body.pl-ro #ed{caret-color:transparent}
+body.pl-sem-ia #bAI{display:none!important}
+body.pl-sem-notas #modeSw [data-mode="notes"],body.pl-sem-notas #bNotesPane{display:none!important}
+body.pl-sem-notas #modeSw{display:none!important}
+body.pl-sem-arquivo #bExport{display:none!important}
+
+/* ---------- menu da conta ---------- */
+.pl-menu{position:fixed;z-index:62;top:48px;right:8px;width:min(280px,calc(100vw - 16px));background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);padding:6px}
+.pl-menu[hidden]{display:none}
+.pl-menu-who{display:flex;gap:10px;align-items:center;padding:8px 8px 10px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.pl-menu-who div{min-width:0}
+.pl-menu-who b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-menu-who small{display:block;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-menu button{display:flex;width:100%;align-items:center;gap:10px;border:0;background:none;padding:8px;border-radius:6px;text-align:left}
+.pl-menu button:hover{background:var(--panel2)}
+.pl-menu button svg{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;color:var(--muted)}
+.pl-menu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+
+/* ---------- tela inicial ---------- */
+.pl-hbar{display:flex;align-items:center;gap:8px;margin:26px 0 10px;flex-wrap:wrap}
+.pl-hbar .inp{max-width:260px;margin-left:auto;min-height:0}
+.pl-n{font:11px var(--mono);color:var(--muted)}
+.pl-n:empty{display:none}
+.drow .pl-badge svg{width:11px;height:11px;vertical-align:-1px;margin-right:3px}
+.pl-who-s{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);white-space:nowrap}
+@media (max-width:760px){.pl-hbar .inp{max-width:none;flex-basis:100%;order:5}.drow .pl-who-s span{display:none}}
+
+/* ---------- folhas em tela cheia ---------- */
+.pl-sheet{position:fixed;inset:0;z-index:45;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.pl-sheet[hidden]{display:none}
+.pl-sheet-h{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap;min-height:48px}
+.pl-sheet-h>b{font-size:15px;font-weight:600;margin-right:6px}
+.pl-search{flex:1 1 180px;max-width:320px;padding:6px 9px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);min-width:0}
+.pl-seg{display:flex;gap:2px;background:var(--panel2);border-radius:7px;padding:2px;overflow-x:auto;max-width:100%}
+.pl-seg button{border:0;background:none;padding:5px 10px;border-radius:5px;white-space:nowrap;color:var(--muted)}
+.pl-seg button[aria-selected="true"]{background:var(--panel);color:var(--text);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.pl-seg i{font-style:normal;font-family:var(--mono);font-size:11px;opacity:.75;margin-left:4px}
+.pl-badge{font:500 10.5px/1 var(--font);padding:3px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center}
+.pl-badge.ac{color:var(--accent);border-color:var(--accent)}
+.pl-badge.ok{color:var(--ok);border-color:var(--ok)}
+.pl-badge.dg{color:var(--danger);border-color:var(--danger)}
+
+/* ---------- configurações ---------- */
+.pl-cfg{flex:1;display:grid;grid-template-columns:220px minmax(0,1fr);min-height:0}
+.pl-cfg-nav{border-right:1px solid var(--line);background:var(--panel);padding:10px 8px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+.pl-cfg-nav button{border:0;background:none;text-align:left;padding:8px 10px;border-radius:6px;display:flex;gap:10px;align-items:center;color:var(--muted)}
+.pl-cfg-nav button:hover{background:var(--panel2)}
+.pl-cfg-nav button[aria-selected="true"]{background:var(--accent-soft);color:var(--text);font-weight:500}
+.pl-cfg-nav svg{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.pl-cfg-body{overflow:auto;padding:18px 22px 60px}
+.pl-cfg-body h2{font-size:17px;font-weight:600;margin:0 0 4px}
+.pl-cfg-body h3{font-size:13px;font-weight:600;margin:22px 0 8px}
+.pl-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;max-width:760px}
+.pl-box+.pl-box{margin-top:12px}
+.pl-row{display:grid;grid-template-columns:160px minmax(0,1fr);gap:8px 14px;align-items:center;margin:8px 0}
+.pl-row>span{color:var(--muted);font-size:12.5px}
+.pl-row .pl-in{font-size:13px;padding:7px 9px;width:100%;max-width:420px}
+.pl-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.pl-prof{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.pl-prof-t b{font-size:16px;font-weight:600;display:block}
+.pl-chips{display:flex;flex-wrap:wrap;gap:6px}
+.pl-chip{font-size:11.5px;padding:4px 8px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+.pl-chip.off{opacity:.45;text-decoration:line-through}
+.pl-perm{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:4px 12px}
+.pl-perm label{display:flex;gap:8px;align-items:center;padding:4px 0;font-size:12.5px}
+.pl-perm input,.chk input{accent-color:var(--accent)}
+.chk{display:inline-flex;gap:8px;align-items:center;font-size:12.5px}
+.pl-sub{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 6px}
+.pl-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.pl-tbl th{text-align:left;font-weight:500;color:var(--muted);font-size:11.5px;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;background:var(--panel)}
+.pl-tbl td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.pl-tbl tr.cl{cursor:pointer}
+.pl-tbl tr.cl:hover td{background:var(--panel2)}
+.pl-tbl .mono,.mono{font-family:var(--mono);font-size:11.5px}
+.pl-who{display:flex;gap:9px;align-items:center;min-width:0}
+.pl-who div{min-width:0}
+.pl-who b{font-weight:500;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-who small{color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-scroll{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:10px;background:var(--panel);max-height:60vh}
+.pl-cfg-body .pl-scroll{max-height:none}
+.pl-scroll .pl-tbl tr:last-child td{border-bottom:0}
+.pl-secret{font:500 15px/1.2 var(--mono);background:var(--panel2);border:1px dashed var(--accent);padding:10px 12px;border-radius:6px;user-select:all;text-align:center;letter-spacing:.04em}
+.pl-share-row{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.pl-share-row .pl-who{flex:1}
+.pl-sel{padding:5px 6px;border:1px solid var(--line);border-radius:5px;background:var(--panel2)}
+.pl-key{font-family:var(--mono)}
+.pl-teste{margin-top:10px;font-size:12.5px;padding:8px 10px;border-radius:6px;background:var(--panel2);border:1px solid var(--line)}
+.pl-teste:empty{display:none}
+@media (max-width:760px){
+  .pl-cfg{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .pl-cfg-nav{flex-direction:row;border-right:0;border-bottom:1px solid var(--line);overflow-x:auto;padding:6px}
+  .pl-cfg-nav button{white-space:nowrap;padding:6px 10px}
+  .pl-cfg-body{padding:14px 16px 60px}
+  .pl-row{grid-template-columns:minmax(0,1fr)}
+  .pl-hide-sm{display:none}
+}
+
+/* ---------- integração GPlanSiS|Docs ---------- */
+.pl-edmschip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:3px 10px 3px 8px;
+  font:11.5px/1.2 var(--mono);white-space:nowrap;max-width:34vw;overflow:hidden;flex:0 1 auto;min-width:0}
+.pl-edmschip span{overflow:hidden;text-overflow:ellipsis}
+.pl-edmschip:hover{border-color:var(--accent)}
+.pl-edmschip .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.pl-edmschip .dot.warn{background:var(--accent)}.pl-edmschip .dot.ok{background:var(--ok)}.pl-edmschip .dot.bad{background:var(--danger)}.pl-edmschip .dot.info{background:var(--ins)}
+.pl-edmschip b{font-weight:600}
+@media (max-width:760px){.pl-edmschip span{display:none}}
+.pl-com{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:8px;padding:8px 2px;border-bottom:1px solid var(--line);align-items:start}
+.pl-com .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:600 11px var(--mono);color:#fff;background:var(--danger)}
+.pl-com.res .n{background:var(--ok)}
+.pl-com p{margin:2px 0 0;font-size:12.5px;white-space:pre-wrap}
+
+/* ---------- idioma de escrita e tradutor ---------- */
+#stLang,#stTrad{display:inline-flex;align-items:center;gap:5px}
+#stLang::after{content:"";border:4px solid transparent;border-top-color:currentColor;margin-top:4px;opacity:.6}
+#stTrad svg{width:15px;height:15px}
+body.pl-sem-ia #stTrad{display:none!important}
+.pl-trprev{margin-top:8px;font:12px/1.45 var(--serif);color:var(--muted);max-height:9em;overflow:hidden;white-space:pre-wrap}
+.pl-trprev:empty{display:none}
+
+/* ---------- menu de contexto, seleção e atalhos ---------- */
+.pl-menudica{font-size:11px;color:var(--muted);padding:6px 9px 3px;border-top:1px solid var(--line);margin-top:4px}
+#ed.pl-margem{cursor:e-resize}
+.pl-atalhos{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:4px 22px}
+.pl-atalhos .pl-tbl td:first-child{white-space:nowrap;width:1%;padding-right:14px}
+.pl-atalhos kbd{font-size:11px}
+@media (max-width:760px){.pl-atalhos{grid-template-columns:minmax(0,1fr)}.pl-atalhos .pl-tbl td:first-child{white-space:normal}}
+
+/* ---------- realce da seleção ----------
+   A folha é sempre clara (também no tema escuro), e o realce padrão do navegador no modo escuro
+   sai quase branco sobre ela: a seleção existia, mas não aparecia. Realce próprio, visível nos dois temas. */
+:root{--sel-bg:rgba(31,111,209,.30)}
+:root[data-paper="dark"]{--sel-bg:rgba(110,170,255,.42)}
+#ed::selection,#ed ::selection,#fnarea ::selection,#nEd::selection,#nEd ::selection,#nTitle::selection{background:var(--sel-bg);color:inherit}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #nEd ::selection,:root:not([data-theme="light"]) #nEd::selection{background:rgba(110,170,255,.42)}}
+:root[data-theme="dark"] #nEd ::selection,:root[data-theme="dark"] #nEd::selection{background:rgba(110,170,255,.42)}
+
+/* ---------- Assistente IA editando o documento ---------- */
+.pl-iabar{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:58;display:flex;align-items:center;gap:8px;max-width:min(760px,calc(100vw - 24px));
+  background:var(--panel);border:1px solid var(--accent);border-radius:10px;padding:8px 10px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:13px}
+.pl-iabar[hidden]{display:none}
+.pl-iabar-ic svg{width:18px;height:18px;color:var(--accent);display:block}
+.pl-iabar.busy .pl-iabar-ic svg{animation:pl-gira 1.4s linear infinite}
+@keyframes pl-gira{to{transform:rotate(360deg)}}
+.pl-iabar-t{flex:1;min-width:0;line-height:1.35}
+.pl-iabar .tb{min-height:26px;padding:3px 9px;font-size:12px}
+@media (max-width:760px){.pl-iabar{flex-wrap:wrap;bottom:34px}}

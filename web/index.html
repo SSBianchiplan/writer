@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GPlanSiS|Writer</title>
+<meta name="description" content="Editor de documentos e notas da equipe — GPlanSiS|Writer">
+<meta name="theme-color" content="#f7f8f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1f2428" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon-32.png" type="image/png" sizes="32x32">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Writer">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="application-name" content="GPlanSiS|Writer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/writer.css?v=__V__">
+<link rel="stylesheet" href="/plataforma.css?v=__V__">
+<script src="/tema.js?v=__V__"></script>
+</head>
+<body>
+<!-- ============ plataforma: acesso ============ -->
+<div id="plGate" class="pl-gate" aria-live="polite">
+  <div class="pl-gate-card">
+    <div class="pl-brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="6" fill="var(--accent)"/><path d="M8 10l3 12 3.2-8.5L17.5 22l3-12M22 22h3" stroke="var(--accent-ink)" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>GPlanSiS</b><span>|Writer</span></div></div>
+    <p class="pl-gate-sub" id="plGateSub">Documentos e notas da equipe</p>
+    <form id="plLogin" class="pl-form" autocomplete="on" hidden>
+      <label>E-mail<input id="plLgUser" type="email" autocomplete="username" required inputmode="email" autocapitalize="none" spellcheck="false"></label>
+      <label>Senha<input id="plLgPass" type="password" autocomplete="current-password" required></label>
+      <div class="pl-err" id="plLgErr"></div>
+      <button class="tb primary pl-wide" type="submit" id="plLgBtn">Entrar</button>
+    </form>
+    <form id="plTroca" class="pl-form" hidden>
+      <p class="small" style="margin:0 0 4px">Primeiro acesso: defina uma senha pessoal. Mínimo de 10 caracteres, com maiúsculas, minúsculas e número.</p>
+      <label>Senha temporária<input id="plTrAtual" type="password" autocomplete="current-password" required></label>
+      <label>Nova senha<input id="plTrNova" type="password" autocomplete="new-password" required minlength="10"></label>
+      <label>Repita a nova senha<input id="plTrNova2" type="password" autocomplete="new-password" required minlength="10"></label>
+      <div class="pl-err" id="plTrErr"></div>
+      <button class="tb primary pl-wide" type="submit">Salvar senha e entrar</button>
+      <button class="tb pl-wide" type="button" id="plTrSair">Sair</button>
+    </form>
+    <div id="plGateLoad" class="small">Verificando sessão…</div>
+  </div>
+  <p class="pl-gate-foot small">Acesso restrito a usuários cadastrados. Peça seu acesso ao administrador.</p>
+</div>
+
+<header id="top">
+  <button id="brand" title="Início">GPlanSiS<span>|Writer</span></button>
+  <div id="modeSw" role="group" aria-label="Módulo">
+    <button data-mode="docs" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg><span class="lbl">Documentos</span></button>
+    <button data-mode="notes" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h14v12l-4 4H5z"/><path d="M15 20v-4h4M8 9h8M8 13h5"/></svg><span class="lbl">Notas</span></button>
+  </div>
+  <input id="dname" aria-label="Nome do documento" spellcheck="false">
+  <div id="sync"><i></i><span>Salvo</span></div>
+  <button id="plDocChip" class="pl-docchip" hidden></button>
+  <button id="plEdmsChip" class="pl-edmschip" hidden></button>
+  <div id="topR">
+    <button class="tb" id="bNotesPane" title="Notas ao lado (Ctrl+Shift+N cria nota rápida)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h14v12l-4 4H5z"/><path d="M15 20v-4h4"/></svg><span class="lbl">Notas</span></button>
+    <button class="tb" id="bAI" title="Assistente de escrita"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></svg><span class="lbl">Assistente</span></button>
+    <button class="tb" id="bExport" title="Exportar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v12M7 10l5 5 5-5M5 19h14"/></svg><span class="lbl">Exportar</span></button>
+    <button class="tb" id="bTheme" title="Tema claro/escuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 000 16z" fill="currentColor"/></svg></button>
+    <button class="tb" id="plDocsLink" hidden title="Abrir o GPlanSiS|Docs já conectado com a sua conta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg><span class="lbl">Docs</span></button>
+    <button class="tb" id="plShareBtn" hidden title="Compartilhar este documento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg><span class="lbl">Compartilhar</span></button>
+    <button id="plUserBtn" class="pl-userbtn" title="Conta e configurações" aria-haspopup="menu"><span class="pl-av" id="plTopAv"></span></button>
+  </div>
+</header>
+<nav id="ribbon"><div id="tabs" role="tablist"></div><div id="tools"></div></nav>
+<div id="app">
+  <aside class="pane left" id="navP" hidden><div class="ph">Navegação<button class="x" data-close="navP" aria-label="Fechar">×</button></div><div class="pb"><input class="inp" id="navQ" placeholder="Buscar no documento"><div class="nav" id="navL" style="margin-top:8px"></div></div></aside>
+  <main id="desk">
+    <div id="zoomer">
+      <div id="ruler"></div>
+      <div id="paper">
+        <div id="sheets"></div>
+        <div id="ed" contenteditable="true" spellcheck="true" lang="pt-BR"></div>
+        <div id="fnarea"></div>
+      </div>
+    </div>
+  </main>
+  <aside class="pane right" id="sideP" hidden><div class="ph"><span id="sideT"></span><button class="x" data-close="sideP" aria-label="Fechar">×</button></div><div class="pb" id="sideB"></div></aside>
+  <section id="notes" hidden>
+    <div id="nFold"></div>
+    <div id="nList">
+      <div style="display:flex;gap:4px;padding:8px 8px 0;align-items:center">
+        <button class="ib nfoldbtn" id="nFoldBtn" title="Pastas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h7l2 2h9v11H3z"/></svg></button>
+        <b id="nListT" style="flex:1;font-size:14px;padding-left:4px"></b>
+        <select class="sel" id="nSort" title="Ordenar"><option value="upd">Editadas</option><option value="cre">Criadas</option><option value="tit">Título</option></select>
+        <button class="tb primary" id="nNew" title="Nova nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Nova</span></button>
+      </div>
+      <input class="inp" id="nSearch" placeholder="Buscar notas e #etiquetas">
+      <div id="nItems" style="flex:1;overflow:auto"></div>
+    </div>
+    <div id="nEdW">
+      <div id="nBar"></div>
+      <div id="nScroll"><div id="nPaper">
+        <div id="nMeta"></div>
+        <input id="nTitle" placeholder="Título" spellcheck="true">
+        <div id="nEd" contenteditable="true" spellcheck="true" lang="pt-BR"></div>
+      </div></div>
+    </div>
+  </section>
+  <section id="home" hidden><div class="in" id="homeIn"></div></section>
+</div>
+<footer id="status">
+  <button id="stPage">Página 1 de 1</button>
+  <button id="stWords">0 palavras</button>
+  <button id="stLang" title="Idioma de escrita do documento (corretor, leitura em voz alta, Word)">Português (Brasil)</button>
+  <button id="stTrad" title="Tradutor automático: traduz a seleção ou cria uma cópia traduzida do documento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h8M8 3v2M10 5c0 4-3 7-6 8M6 9c1 2 3 3.5 5 4"/><path d="M13 21l4-9 4 9M14.5 18h5"/></svg><span>Traduzir</span></button>
+  <span id="stTrack" hidden class="badge">Controlando alterações</span>
+  <span class="sp"></span>
+  <button data-view="print" title="Layout de impressão">Impressão</button>
+  <button data-view="web" title="Layout web">Web</button>
+  <button data-view="focus" title="Modo foco (Esc sai)">Foco</button>
+  <button id="zOut" aria-label="Afastar">−</button>
+  <input type="range" id="zoomR" min="40" max="200" step="5" value="100" aria-label="Zoom">
+  <button id="zIn" aria-label="Aproximar">+</button>
+  <button id="zVal" title="Ajustar à largura">100%</button>
+</footer>
+<div id="printRoot"></div>
+<div id="toast" role="status"></div>
+<input type="file" id="fileIn" hidden multiple accept=".docx,.docm,.dotx,.doc,.dot,.odt,.rtf,.html,.htm,.md,.markdown,.txt,.text,.csv,.tsv,.json">
+<div id="dropz" hidden>Solte o arquivo para abrir</div>
+<input type="file" id="imgIn" hidden accept="image/*,.svg">
+
+<!-- ============ plataforma: menu da conta ============ -->
+<div id="plMenu" class="pl-menu" role="menu" hidden></div>
+
+<!-- ============ plataforma: configurações ============ -->
+<section id="plCfg" class="pl-sheet" aria-label="Configurações" hidden>
+  <header class="pl-sheet-h">
+    <b>Configurações</b>
+    <span class="small" id="plCfgWho"></span>
+    <button class="tb" data-pl-close="plCfg" style="margin-left:auto">Voltar</button>
+  </header>
+  <div class="pl-cfg">
+    <nav id="plCfgNav" class="pl-cfg-nav" role="tablist"></nav>
+    <div id="plCfgBody" class="pl-cfg-body"></div>
+  </div>
+</section>
+<input type="file" id="plAvatarIn" accept="image/png,image/jpeg,image/webp" hidden>
+<script src="/writer.js?v=__V__"></script>
+<script src="/plataforma.js?v=__V__"></script>
+<script src="/pwa.js?v=__V__"></script>
+</body>
+</html>

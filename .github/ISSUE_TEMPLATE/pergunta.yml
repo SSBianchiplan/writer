@@ -1,0 +1,11 @@
+name: ❓ Pergunta
+description: Dúvida sobre uso, instalação ou código
+labels: ["pergunta"]
+body:
+  - type: textarea
+    id: pergunta
+    attributes:
+      label: Sua pergunta
+      description: Diga o que você tentou e onde travou (README, docs/operacao.md…).
+    validations:
+      required: true

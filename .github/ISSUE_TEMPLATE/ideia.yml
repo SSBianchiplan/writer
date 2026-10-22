@@ -1,0 +1,27 @@
+name: 💡 Ideia ou melhoria
+description: Sugira um recurso novo ou uma melhoria
+labels: ["melhoria"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qual problema isso resolve?
+      description: Conte a situação de uso. Ex.: "Quando preparo um relatório, preciso…"
+    validations:
+      required: true
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Como você imagina a solução?
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas que você considerou
+  - type: checkboxes
+    id: ajuda
+    attributes:
+      label: Participação
+      options:
+        - label: Gostaria de ajudar a implementar

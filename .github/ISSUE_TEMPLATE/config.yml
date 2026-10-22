@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🌐 Usar o GPlanSiS|Writer
+    url: https://writer.gplansis.com
+    about: A versão em produção.
+  - name: 🔒 Relatar vulnerabilidade
+    url: mailto:contato@gplansis.com
+    about: Falhas de segurança vão por e-mail, nunca em issue pública.

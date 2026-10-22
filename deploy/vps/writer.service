@@ -1,0 +1,26 @@
+# /etc/systemd/system/writer.service
+# GPlanSiS|Writer — API (uvicorn no loopback, atrás do Caddy). Estáticos: Caddy em /opt/writer/web.
+[Unit]
+Description=GPlanSiS|Writer (documentos e notas) — API
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=writer
+Group=writer
+WorkingDirectory=/opt/writer/server
+EnvironmentFile=/opt/writer/.env
+ExecStart=/opt/writer/.venv/bin/uvicorn app:app --host 127.0.0.1 --port 8976 --workers 2 --proxy-headers --forwarded-allow-ips 127.0.0.1
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+
+[Install]
+WantedBy=multi-user.target

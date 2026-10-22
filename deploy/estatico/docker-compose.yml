@@ -1,0 +1,31 @@
+# Publicação atrás do Traefik já existente.
+# Ajuste as variáveis no arquivo .env (copie de .env.example).
+# Antes do build: cp ../../standalone/GPlanSiS-Writer-offline.html index.html
+services:
+  writer:
+    build: .
+    image: gplansis/writer:${WRITER_VERSION:-1.0.0}
+    container_name: gplansis-writer
+    restart: unless-stopped
+    networks: [proxy]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-proxy}
+      - traefik.http.routers.writer.rule=Host(`${WRITER_HOST}`)
+      - traefik.http.routers.writer.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.writer.tls=true
+      - traefik.http.routers.writer.tls.certresolver=${TRAEFIK_CERTRESOLVER:-le}
+      - traefik.http.routers.writer.middlewares=writer-hsts
+      - traefik.http.middlewares.writer-hsts.headers.stsSeconds=31536000
+      - traefik.http.middlewares.writer-hsts.headers.stsIncludeSubdomains=true
+      - traefik.http.services.writer.loadbalancer.server.port=80
+
+networks:
+  proxy:
+    external: true
+    name: ${TRAEFIK_NETWORK:-proxy}
