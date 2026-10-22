@@ -141,3 +141,24 @@ create table if not exists sso_nonce (
   nonce     text primary key,
   expira_em timestamptz not null
 );
+
+-- Assistente IA: uso real de tokens e custo por chamada (cota mensal por pessoa, em US$).
+-- ok null = chamada em andamento (conta para o limite de 3 simultâneas por pessoa).
+create table if not exists ia_uso (
+  id            bigserial primary key,
+  ts            timestamptz not null default now(),
+  usuario_id    bigint references usuarios(id) on delete set null,
+  recurso       text not null,
+  modelo        text,
+  input_tokens  int not null default 0,
+  output_tokens int not null default 0,
+  cache_read    int not null default 0,
+  cache_write   int not null default 0,
+  custo_usd     numeric(12,6) not null default 0,
+  ok            boolean,
+  erro          text,
+  ms            int
+);
+create index if not exists ia_uso_usuario_ts_ix on ia_uso (usuario_id, ts);
+-- Cota mensal em US$ da pessoa; null = padrão global (config 'ia'.cota_usd, 20 se ausente).
+alter table usuarios add column if not exists ia_cota numeric(10,2);

@@ -587,6 +587,7 @@ async function cfgIA(){corpo(`<h2>Assistente IA</h2><p class="small">O assistent
     <div class="pl-row"><span>Chave da API</span><input class="pl-in pl-key" id="plIaK" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-api03-…"></div>
     <div class="pl-row"><span>Modelo</span><select class="pl-in" id="plIaM"></select></div>
     <div class="pl-row"><span>Situação</span><label class="chk"><input type="checkbox" id="plIaA"> Assistente ligado para quem tem a permissão “Usar o Assistente IA”</label></div>
+    <div class="pl-row"><span>Cota mensal</span><label class="small">US$ <input class="pl-in" id="plIaQ" type="number" min="0" max="10000" step="0.5"> por pessoa (padrão; ao atingir, o assistente para até o mês seguinte)</label></div>
     <p class="small">A chave fica cifrada no banco do servidor e nunca volta para o navegador — aqui aparecem só os 4 últimos caracteres. Deixe o campo em branco para manter a chave atual.</p>
     <div class="pl-actions"><button class="tb primary" type="submit">Salvar</button><button class="tb" type="button" id="plIaT">Testar conexão</button><button class="tb" type="button" id="plIaX" hidden>Remover chave</button><span class="pl-err" id="plIaE"></span></div>
     <div class="pl-teste" id="plIaR"></div></form></div>`);
@@ -599,6 +600,7 @@ async function cfgIA(){corpo(`<h2>Assistente IA</h2><p class="small">O assistent
     const ids=new Set(c.modelos.map(m=>m.id));$('#plIaM').innerHTML=c.modelos.map(m=>`<option value="${esc(m.id)}">${esc(m.nome)}</option>`).join('')+(ids.has(c.modelo)?'':`<option value="${esc(c.modelo)}">${esc(c.modelo)}</option>`);
     $('#plIaM').value=c.modelo;$('#plIaA').checked=c.ativo;$('#plIaX').hidden=c.origem!=='painel'};
   pinta(c);
+  try{$('#plIaQ').value=(await api('GET','/api/admin/ia/cota')).cotaPadraoUsd}catch(_){$('#plIaQ').closest('.pl-row').hidden=true}
   const atualizaMe=async()=>{setMe(await api('GET','/api/auth/me'));aplicaPermissoes()};
   $('#plIaT').onclick=async()=>{const b=$('#plIaT');b.disabled=true;$('#plIaR').textContent='Testando…';$('#plIaE').textContent='';
     try{const r=await api('POST','/api/admin/ia/testar',{chave:$('#plIaK').value.trim()||null,modelo:$('#plIaM').value});
@@ -607,6 +609,7 @@ async function cfgIA(){corpo(`<h2>Assistente IA</h2><p class="small">O assistent
     catch(e){$('#plIaR').innerHTML=`<span class="pl-err">${esc(e.message)}</span>`}finally{b.disabled=false}};
   $('#plIaF').onsubmit=async e=>{e.preventDefault();$('#plIaE').textContent='';
     try{const c2=await api('PUT','/api/admin/ia',{chave:$('#plIaK').value.trim()||null,modelo:$('#plIaM').value,ativo:$('#plIaA').checked});$('#plIaK').value='';pinta(c2);
+      if($('#plIaQ').value!==''&&!$('#plIaQ').closest('.pl-row').hidden)$('#plIaQ').value=(await api('PUT','/api/admin/ia/cota',{cotaUsd:Number($('#plIaQ').value)})).cotaPadraoUsd;
       await atualizaMe();toast(c2.pronta?'Assistente IA ligado':'Configuração salva — assistente desligado')}catch(err){$('#plIaE').textContent=err.message}};
   $('#plIaX').onclick=async()=>{if(!await confirmDlg('Remover chave','Remover a chave da Anthropic guardada neste painel? O assistente para de funcionar (a não ser que haja chave no .env do servidor).','Remover chave'))return;
     try{pinta(await api('DELETE','/api/admin/ia/chave'));await atualizaMe();toast('Chave removida')}catch(e){toast(e.message)}}}

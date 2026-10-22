@@ -42,6 +42,8 @@ from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 from pydantic import BaseModel, Field
 
+from ia_cota import Cota, LimiteCorpoIA, codigo_erro, erro_cliente
+
 DSN = os.environ.get("WRITER_DSN", "postgresql:///writer")
 MASTER = os.environ.get("WRITER_MASTER", "").strip().lower()
 IA_KEY_ENV = os.environ.get("ANTHROPIC_API_KEY", "").strip()
@@ -178,6 +180,7 @@ async def vida(app):
 
 
 app = FastAPI(title="GPlanSiS|Writer", lifespan=vida, docs_url=None, redoc_url=None, openapi_url=None)
+app.add_middleware(LimiteCorpoIA)  # 413 em /api/ia/* acima de 2 MB, antes de ler o JSON
 
 
 @app.middleware("http")
@@ -1006,6 +1009,7 @@ MODELOS_IA = [
 ]
 # Modelos que aceitam o fallback de servidor no formato "default"
 COM_FALLBACK = {"claude-opus-5-5", "claude-opus-5", "claude-fable-5-1", "claude-sonnet-5-5"}
+cota = Cota(db, registra)  # cota mensal em US$, 30/min e 3 simultâneas por pessoa (ia_cota.py)
 _IA_CACHE: dict = {"t": 0.0, "v": None}
 
 
@@ -1042,19 +1046,8 @@ def cliente_ia(chave: str) -> anthropic.AsyncAnthropic:
 
 
 def erro_ia(e: Exception) -> HTTPException:
-    if isinstance(e, anthropic.AuthenticationError):
-        return HTTPException(502, "Chave da Anthropic recusada (inválida ou revogada)")
-    if isinstance(e, anthropic.PermissionDeniedError):
-        return HTTPException(502, "A chave não tem permissão para este modelo")
-    if isinstance(e, anthropic.NotFoundError):
-        return HTTPException(502, "Modelo não encontrado para esta chave — escolha outro em Configurações › Assistente IA")
-    if isinstance(e, anthropic.RateLimitError):
-        return HTTPException(429, "Limite de uso da Anthropic atingido — tente em instantes")
-    if isinstance(e, anthropic.APIStatusError):
-        return HTTPException(502, f"A Anthropic respondeu {e.status_code}: {str(e.message)[:200]}")
-    if isinstance(e, anthropic.APIConnectionError):
-        return HTTPException(502, "Sem conexão com a Anthropic a partir do servidor")
-    return HTTPException(502, f"Falha na IA: {e}")
+    return erro_cliente(e)  # mensagem fixa por tipo, sem o texto da Anthropic
+
 
 
 def sse(evento: str, dados: dict) -> str:
@@ -1075,20 +1068,27 @@ async def ia_texto(body: IATexto, request: Request, u: dict = Depends(exige("ia"
         raise HTTPException(503, "Assistente IA não configurado — um administrador cola a chave em Configurações › Assistente IA")
     if not cfg["ativo"]:
         raise HTTPException(503, "Assistente IA desligado pelo administrador")
+    uso = cota.abre(u, "texto", cfg["modelo"])  # 402 cota do mês / 429 limites
     extra = {"betas": ["server-side-fallback-2026-07-01"], "fallbacks": "default"} if cfg["modelo"] in COM_FALLBACK else {}
     fila: asyncio.Queue = asyncio.Queue()
 
     async def corre():
+        t0, st, msg, err = time.time(), None, None, "interrompido"
         try:
             async with cliente_ia(cfg["chave"]).beta.messages.stream(
-                model=cfg["modelo"], max_tokens=32000, messages=[{"role": "user", "content": body.prompt}], **extra,
+                model=cfg["modelo"], max_tokens=16000, messages=[{"role": "user", "content": body.prompt}], **extra,
             ) as st:
                 async for ev in st:
                     if ev.type == "text":
                         await fila.put(("txt", ev.text))
-                await fila.put(("fim", await st.get_final_message()))
-        except Exception as e:  # noqa: BLE001 — devolvido ao cliente como evento de erro
+                msg = await st.get_final_message()
+                err = "recusa" if msg.stop_reason == "refusal" else None
+                await fila.put(("fim", msg))
+        except Exception as e:  # noqa: BLE001 — devolvido ao cliente como evento de erro (sem detalhe)
+            err = codigo_erro(e)
             await fila.put(("erro", e))
+        finally:
+            cota.fecha(uso, *cota.consumo(cfg["modelo"], st, msg), err, t0)
 
     async def eventos():
         t0 = time.time()
@@ -1107,7 +1107,7 @@ async def ia_texto(body: IATexto, request: Request, u: dict = Depends(exige("ia"
                     yield sse("txt", {"t": v})
                     continue
                 if tipo == "erro":
-                    e = v if isinstance(v, HTTPException) else (erro_ia(v) if isinstance(v, anthropic.APIError) else HTTPException(502, f"Falha na IA: {v}"))
+                    e = v if isinstance(v, HTTPException) else (erro_ia(v) if isinstance(v, anthropic.APIError) else erro_cliente(v))
                     yield sse("erro", {"detail": e.detail})
                     return
                 msg = v
@@ -1169,6 +1169,7 @@ async def ia_editar(body: IAEdicao, request: Request, u: dict = Depends(exige("i
         raise HTTPException(503, "Assistente IA não configurado — um administrador cola a chave em Configurações › Assistente IA")
     if not cfg["ativo"]:
         raise HTTPException(503, "Assistente IA desligado pelo administrador")
+    uso = cota.abre(u, "editar", cfg["modelo"])  # 402 cota do mês / 429 limites
     conteudo = (f"Título do documento: {body.titulo}\nIdioma do documento: {body.idioma}\n"
                 + (f"ESCOPO: {body.escopo}\n" if body.escopo else "")
                 + f"\nDocumento:\n<<<\n{body.documento}\n>>>\n\nPedido: {body.pedido}")
@@ -1176,6 +1177,7 @@ async def ia_editar(body: IAEdicao, request: Request, u: dict = Depends(exige("i
     fila: asyncio.Queue = asyncio.Queue()
 
     async def corre():
+        t0, st, msg, err = time.time(), None, None, "interrompido"
         try:
             async with cliente_ia(cfg["chave"]).beta.messages.stream(
                 model=cfg["modelo"], max_tokens=32000, system=EDICAO_SISTEMA, messages=[{"role": "user", "content": conteudo}],
@@ -1184,9 +1186,14 @@ async def ia_editar(body: IAEdicao, request: Request, u: dict = Depends(exige("i
                 async for ev in st:
                     if ev.type == "text":
                         await fila.put(("txt", ev.text))
-                await fila.put(("fim", await st.get_final_message()))
-        except Exception as e:  # noqa: BLE001 — devolvido ao cliente como evento de erro
+                msg = await st.get_final_message()
+                err = {"refusal": "recusa", "max_tokens": "max_tokens"}.get(msg.stop_reason)
+                await fila.put(("fim", msg))
+        except Exception as e:  # noqa: BLE001 — devolvido ao cliente como evento de erro (sem detalhe)
+            err = codigo_erro(e)
             await fila.put(("erro", e))
+        finally:
+            cota.fecha(uso, *cota.consumo(cfg["modelo"], st, msg), err, t0)
 
     async def eventos():
         t0, nchars = time.time(), 0
@@ -1205,7 +1212,7 @@ async def ia_editar(body: IAEdicao, request: Request, u: dict = Depends(exige("i
                     nchars += len(v)
                     continue
                 if tipo == "erro":
-                    e = v if isinstance(v, HTTPException) else (erro_ia(v) if isinstance(v, anthropic.APIError) else HTTPException(502, f"Falha na IA: {v}"))
+                    e = v if isinstance(v, HTTPException) else (erro_ia(v) if isinstance(v, anthropic.APIError) else erro_cliente(v))
                     yield sse("erro", {"detail": e.detail})
                     return
                 msg = v
@@ -1236,6 +1243,9 @@ def ia_publica(cfg: dict) -> dict:
     return {"configurada": bool(cfg["chave"]), "ativo": cfg["ativo"], "pronta": cfg["pronta"], "origem": cfg["origem"],
             "final": cfg["final"], "modelo": cfg["modelo"], "modelos": [{"id": m, "nome": n} for m, n in MODELOS_IA],
             "atualizadoEm": cfg["atualizadoEm"], "atualizadoPor": cfg["atualizadoPor"], "cifragem": bool(SEGREDO)}
+
+
+cota.instala(app, exige_admin, ativo_ok)  # /api/ia/cota, /api/admin/ia/cota e /api/admin/ia/cota/{uid}
 
 
 @app.get("/api/admin/ia")
