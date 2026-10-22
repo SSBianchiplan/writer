@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://writer.gplansis.com"><img alt="no ar" src="https://img.shields.io/badge/no%20ar-writer.gplansis.com-f6a709?style=for-the-badge&labelColor=1f2428"></a>
   <img alt="versão 1.1" src="https://img.shields.io/badge/vers%C3%A3o-1.1-f6a709?style=for-the-badge&labelColor=1f2428">
-  <img alt="licença a definir" src="https://img.shields.io/badge/licen%C3%A7a-a%20definir-8e979d?style=for-the-badge&labelColor=1f2428">
+  <a href="LICENSE"><img alt="licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-2ea44f?style=flat-square"><">
 </p>
 <p align="center">
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-API-1f2428?logo=fastapi&logoColor=white">
@@ -244,7 +244,7 @@ Leia o [guia de contribuição](CONTRIBUTING.md), o [código de conduta](CODE_OF
 
 ## Licença
 
-**Licença: a definir pela GPlanSiS.** Até que um arquivo `LICENSE` seja publicado, o código está disponível para leitura e colaboração, mas nenhuma licença de uso é concedida.
+Código próprio sob a **[licença MIT](LICENSE)** — Copyright (c) 2026 GPlanSiS.
 
 Componentes de terceiros mantêm suas licenças: IBM Plex (SIL Open Font License 1.1), JSZip 3.10.1 (MIT ou GPLv3, à escolha), Mammoth 1.6.0 (BSD-2-Clause); no servidor, FastAPI (MIT), uvicorn (BSD-3-Clause), psycopg 3 (LGPL-3.0), cryptography (Apache-2.0 ou BSD), httpx (BSD-3-Clause) e o SDK `anthropic` (MIT).
 
